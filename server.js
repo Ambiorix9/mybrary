@@ -7,6 +7,7 @@ const bodyParser = require('body-parser')
 
 const indexRoutes = require('./routes/index');
 const authorsRoutes = require('./routes/authors');
+const booksRoutes = require('./routes/books');
 
 app.set('view engine', 'ejs')
 app.set('views', __dirname + '/views')
@@ -18,6 +19,7 @@ app.use(bodyParser.urlencoded({extended: false, limit: '10mb'}))
 
 app.use('/', indexRoutes)
 app.use('/authors', authorsRoutes)
+app.use('/books', booksRoutes)
 
 mongoose.connect(process.env.DATABASE_URL, {
   useNewUrlParser: true,
