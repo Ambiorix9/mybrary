@@ -4,14 +4,8 @@ const Book = require('../models/book');
 const Author = require('../models/author')
 const path = require('path')
 const fs = require('fs');
-const multer = require('multer')
+
 const imageMimeTypes = ['image/jpeg', 'image/png', 'image/gif']
-const upload = multer({
-  dest: path.join('public', Book.coverImageFolder),
-  fileFilter: (req, file, cb) => {
-    cb(null, imageMimeTypes.includes(file.mimetype))
-  }
-})
 
 //List all Books
 router.get('/', async (req, res) => {
@@ -36,16 +30,16 @@ router.get('/new', async (req, res) => {
 })
 
 //Create new Book with submitted form data
-router.post('/', upload.single('cover'), async (req, res) => {
-  const fileName = req.file != null ? req.file.filename : null
+router.post('/', async (req, res) => {
   const book = new Book({
     title: req.body.title,
     author: req.body.author,
     publishDate: new Date(req.body.publishDate),
     pageCount: req.body.pageCount,
-    thumbnail: fileName,
     description: req.body.description,
   })
+
+  saveCover(book, req.body.cover)
 
   try {
     const newBook = await book.save()
@@ -57,11 +51,6 @@ router.post('/', upload.single('cover'), async (req, res) => {
   }
 })
 
-const removeBookImage = (fileName) => {
-  fs.unlink(path.join('public', Book.coverImageFolder, fileName), err => {
-    if (err) console.error(err)
-  })
-}
 
 const renderBookForm = async (res, book, hasError = false) => {
   try {
@@ -71,6 +60,15 @@ const renderBookForm = async (res, book, hasError = false) => {
     res.render('books/new', params)
   } catch {
     res.redirect('/books')
+  }
+}
+
+const saveCover = (book, coverEncoded) => {
+  if (coverEncoded == null) return
+  const cover =JSON.parse(coverEncoded)
+  if (cover != null && imageMimeTypes.includes(cover.type)) {
+    book.thumbnail = new Buffer(cover.data, 'base64')
+    book.thumbnailType = cover.type
   }
 }
 
