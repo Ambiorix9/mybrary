@@ -2,8 +2,7 @@ const express = require('express')
 const router = express.Router()
 const Book = require('../models/book');
 const Author = require('../models/author')
-const path = require('path')
-const fs = require('fs');
+
 
 const imageMimeTypes = ['image/jpeg', 'image/png', 'image/gif']
 
@@ -23,6 +22,8 @@ router.get('/', async (req, res) => {
     res.redirect('/')
   }
 })
+
+
 
 //Get new Book create form
 router.get('/new', async (req, res) => {

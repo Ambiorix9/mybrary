@@ -1,8 +1,6 @@
 const mongoose = require('mongoose')
 const path = require('path');
 
-const coverImageFolder = 'uploads/bookCovers'
-
 const bookSchema = new mongoose.Schema({
   title: { type: String, required: true },
   description: { type: String},
@@ -22,4 +20,3 @@ bookSchema.virtual('coverImagePath').get(function() {
 })
 
 module.exports = mongoose.model('Book', bookSchema)
-module.exports.coverImageFolder = coverImageFolder
