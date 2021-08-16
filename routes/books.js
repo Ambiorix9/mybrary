@@ -44,24 +44,88 @@ router.post('/', async (req, res) => {
 
   try {
     const newBook = await book.save()
-    // res.redirect(`books/${newBook.id}`)
-    res.redirect('books')
+    res.redirect(`books/${newBook.id}`)
   } catch {
     if (book.thumbnail != null) removeBookImage(book.thumbnail)
     renderBookForm(res, book, true)
   }
 })
 
+//Update Book with submitted form data
+router.put('/:id', async (req, res) => {
+  let book
+  try {
+    book = await Book.findById(req.params.id)
+    book.title = req.body.title
+    book.description = req.body.description
+    book.publishDate = new Date(req.body.publishDate)
+    book.pageCount = req.body.pageCount
+    book.author = req.body.author
+    if(req.body.cover) saveCover(book, req.body.cover)
+    await book.save()
+    res.redirect(`/books/${book.id}`)
+  } catch {
+    if (book != null) renderEditForm(res, book, true)
+      else redirect('/')
+  }
+})
 
-const renderBookForm = async (res, book, hasError = false) => {
+//Delete route
+router.delete('/:id', async (req, res) => {
+  let book
+  try {
+    book = await Book.findById(req.params.id)
+    await book.remove()
+    res.redirect('/books')
+  } catch {
+    if(book != null) {
+      res.render('books/show', {
+        book: book,
+        errorMessage: 'Could not delete book!'
+      })
+    } else {
+      res.redirect('/')
+    }
+  }
+})
+
+//Show specific book by id
+router.get('/:id', async (req,res) => {
+  try {
+    const book = await Book.findById(req.params.id).populate('author').exec()
+    res.render('books/show', {book: book})
+  } catch (error) {
+    res.redirect('/')
+  }
+})
+
+//Edit book - get form
+router.get('/:id/edit', async (req, res) => {
+  try {
+    const book = await Book.findById(req.params.id)
+    renderEditForm(res, book)
+  } catch {
+    res.render('/')
+  }
+})
+
+const renderFormPage = async (res, book, form, hasError = false) => {
   try {
     const authors = await Author.find({})
     const params = {authors: authors, book: book}
-    if(hasError) params.errorMessage = 'Error Creating Book'
-    res.render('books/new', params)
+    if(hasError) params.errorMessage = `Error Processing ${form} Book`
+    res.render(`books/${form}`, params)
   } catch {
     res.redirect('/books')
   }
+}
+
+const renderEditForm = async (res, book, hasError = false) => {
+  renderFormPage(res, book, "edit" ,hasError)
+}
+
+const renderBookForm = async (res, book, hasError = false) => {
+  renderFormPage(res, book, "new" ,hasError)
 }
 
 const saveCover = (book, coverEncoded) => {
