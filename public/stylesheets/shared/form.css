@@ -24,7 +24,6 @@
 
 .form-item-no-grow {
   flex-grow: 0;
-  flex-basis: 30%
 }
 
 .form-row-end {
